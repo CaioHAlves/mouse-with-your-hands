@@ -78,6 +78,9 @@ Outros úteis:
 - `frame_margin` — margem do quadro da câmera mapeada para fora da tela
   (permite alcançar os cantos sem esticar o braço)
 - `click_cooldown_s` — tempo mínimo entre cliques
+- `click_anchor_delay_s` — o clique é aplicado onde o cursor estava há este
+  tempo (antes de o dedo dobrar), para não errar alvos pequenos; aumente se
+  os cliques estiverem caindo "atrasados" no caminho do cursor
 - `camera_index` — troque se você tiver mais de uma câmera
 - `failsafe` — se `True`, jogar o cursor num canto da tela aborta o pyautogui
   (proteção de emergência; desligado por padrão porque os cantos são
@@ -102,6 +105,13 @@ Outros úteis:
   `pinch_release` (a diferença entre eles é a histerese que evita o
   "pisca-pisca").
 - **Cursor tremendo**: diminua `smoothing_alpha` (ex.: 0.2).
+- **Cliques erram botões pequenos (minimizar, fechar...)**: o clique usa a
+  posição de `click_anchor_delay_s` atrás (padrão 0.25s), de antes de o dedo
+  dobrar, e o cursor fica congelado enquanto o dedo está dobrado. Se ainda
+  errar, aumente um pouco esse valor ou diminua `smoothing_alpha`.
+- **Cliques não funcionam em janelas de administrador**: o Windows bloqueia
+  cliques sintéticos em programas elevados; rode o `python main.py` num
+  terminal como administrador se precisar controlá-los.
 
 ## Como testar
 

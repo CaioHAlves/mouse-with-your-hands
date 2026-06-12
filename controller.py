@@ -1,6 +1,7 @@
 """Máquina de estados dos gestos + suavização + ações de mouse (pyautogui)."""
 
 import time
+from collections import deque
 
 from config import Config
 from gestures import FrameGesture
@@ -60,6 +61,9 @@ class MouseController:
 
         self._screen_w, self._screen_h = pyautogui.size()
         self._smoother = Smoother(cfg.smoothing_alpha)
+        # Histórico recente (t, x, y) para clicar onde o cursor estava antes
+        # de o gesto de dobrar o dedo deslocar a mão.
+        self._history = deque()
         self.mode = IDLE
         self._pinch_frames = 0
         self._release_frames = 0
@@ -80,6 +84,7 @@ class MouseController:
                 self.mode = IDLE
             if self._lost_frames > cfg.lost_hand_release_frames:
                 self._smoother.reset()
+                self._history.clear()
                 self._pinch_frames = 0
                 self._release_frames = 0
                 self._prev_index_folded = False
@@ -88,11 +93,19 @@ class MouseController:
 
         self._lost_frames = 0
 
-        target = map_to_screen(
-            gesture.anchor[0], gesture.anchor[1], cfg, self._screen_w, self._screen_h
-        )
-        x, y = self._smoother.update(target)
-        self._gui.moveTo(x, y)
+        # Com um dedo de clique dobrado, o cursor fica congelado: a dobra
+        # mexe a mão e faria o cursor escorregar para fora do alvo.
+        frozen = self.mode == IDLE and (gesture.index_folded or gesture.middle_folded)
+        if not frozen:
+            target = map_to_screen(
+                gesture.anchor[0], gesture.anchor[1], cfg, self._screen_w, self._screen_h
+            )
+            x, y = self._smoother.update(target)
+            self._gui.moveTo(x, y)
+            now = time.monotonic()
+            self._history.append((now, x, y))
+            while self._history and now - self._history[0][0] > 1.0:
+                self._history.popleft()
 
         if self.mode == IDLE:
             self._update_idle(gesture)
@@ -125,15 +138,28 @@ class MouseController:
             and not self._prev_index_folded
             and now - self._last_left_click_t > cfg.click_cooldown_s
         ):
-            self._gui.click(button="left")
+            self._click_at_anchor(now, "left")
             self._last_left_click_t = now
         elif (
             gesture.middle_folded
             and not self._prev_middle_folded
             and now - self._last_right_click_t > cfg.click_cooldown_s
         ):
-            self._gui.click(button="right")
+            self._click_at_anchor(now, "right")
             self._last_right_click_t = now
+
+    def _click_at_anchor(self, now: float, button: str):
+        """Clica na posição de antes do gesto: a dobra do dedo desloca a mão
+        entre a intenção e a detecção, e o clique erraria alvos pequenos."""
+        target_t = now - self._cfg.click_anchor_delay_s
+        pos = None
+        for t, x, y in self._history:
+            if t > target_t and pos is not None:
+                break
+            pos = (x, y)
+        if pos is not None:
+            self._gui.moveTo(*pos)
+        self._gui.click(button=button)
 
     def _update_dragging(self, gesture: FrameGesture):
         if gesture.pinch:

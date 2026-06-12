@@ -41,6 +41,10 @@ class Config:
     # dist(ponta, pulso) < dist(PIP, pulso) * fold_threshold.
     fold_threshold: float = 0.9
     click_cooldown_s: float = 0.5
+    # O clique é aplicado na posição em que o cursor estava há este tempo,
+    # antes de o dedo começar a dobrar — senão o movimento da dobra desloca
+    # o cursor e o clique erra alvos pequenos (ex.: botão de minimizar).
+    click_anchor_delay_s: float = 0.25
 
     # Se a mão ativa sumir por mais que isso durante um arrasto, solta o botão.
     lost_hand_release_frames: int = 10
