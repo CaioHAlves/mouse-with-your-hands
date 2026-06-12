@@ -1,11 +1,13 @@
 """Configurações do controle de mouse por gestos.
 
-Todos os ajustes finos ficam aqui. Os dois valores que mais provavelmente
-precisarão de ajuste conforme sua câmera/iluminação são `pinch_threshold`
-e `fold_threshold`.
+Os ajustes de sensibilidade podem ser mudados ao vivo pela janela "Ajustes"
+do app (ficam salvos em settings.json). Este arquivo guarda os padrões e o
+restante das opções.
 """
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -14,6 +16,7 @@ class Config:
     camera_index: int = 0
     frame_width: int = 640
     frame_height: int = 480
+    target_fps: int = 30
 
     # MediaPipe
     max_hands: int = 2
@@ -57,3 +60,45 @@ class Config:
 
 
 CONFIG = Config()
+
+# Campos ajustáveis pelos sliders da janela "Ajustes", persistidos em
+# settings.json. pinch_release não entra: é derivado (pinch_threshold + 0.15).
+TUNABLE_FIELDS = (
+    "smoothing_alpha",
+    "pinch_threshold",
+    "fold_threshold",
+    "click_cooldown_s",
+    "frame_margin",
+)
+
+SETTINGS_PATH = Path(__file__).resolve().parent / "settings.json"
+
+
+def load_settings(cfg: Config):
+    if not SETTINGS_PATH.exists():
+        return
+    try:
+        data = json.loads(SETTINGS_PATH.read_text())
+    except (json.JSONDecodeError, OSError):
+        return
+    for name in TUNABLE_FIELDS:
+        value = data.get(name)
+        if isinstance(value, (int, float)):
+            setattr(cfg, name, float(value))
+    cfg.pinch_release = cfg.pinch_threshold + 0.15
+
+
+def save_settings(cfg: Config):
+    data = {name: getattr(cfg, name) for name in TUNABLE_FIELDS}
+    try:
+        SETTINGS_PATH.write_text(json.dumps(data, indent=2))
+    except OSError:
+        pass
+
+
+def reset_settings(cfg: Config):
+    defaults = Config()
+    for name in TUNABLE_FIELDS:
+        setattr(cfg, name, getattr(defaults, name))
+    cfg.pinch_release = defaults.pinch_release
+    SETTINGS_PATH.unlink(missing_ok=True)

@@ -53,35 +53,34 @@ Na primeira execução, o modelo de mãos do MediaPipe (`hand_landmarker.task`,
 ~8 MB) é baixado automaticamente para a pasta do projeto — só nessa vez é
 preciso estar conectado à internet.
 
-Abre uma janela de preview com a câmera e o esqueleto das mãos. Com essa
-janela em foco:
+Abrem duas janelas: o preview com a câmera e o esqueleto das mãos, e a
+janela **Ajustes**, com os controles de sensibilidade. Com o preview em foco:
 
 - **q** — sai (solta o botão do mouse se estiver arrastando)
 - **p** — pausa/retoma o controle do mouse (o rastreamento continua visível)
+- **r** — restaura os ajustes padrão
 
 ## Ajustes de sensibilidade
 
-Tudo fica em `config.py`. Os dois valores que mais provavelmente você vai
-querer ajustar para a sua câmera e iluminação:
+Use os sliders da janela **Ajustes** — valem na hora e ficam salvos em
+`settings.json` ao sair (a tecla `r` volta ao padrão):
 
-- `pinch_threshold` (padrão 0.40) — quão juntos polegar e indicador precisam
-  estar para engatar a pinça. Diminua se o arrasto dispara sozinho; aumente
-  se está difícil engatar.
-- `fold_threshold` (padrão 0.9) — quão dobrado o dedo precisa estar para
-  contar como clique. Diminua se está clicando sem querer; aumente se os
-  cliques não saem.
-
-Outros úteis:
-
-- `smoothing_alpha` — suavização do cursor (maior = mais responsivo,
-  menor = mais estável)
-- `frame_margin` — margem do quadro da câmera mapeada para fora da tela
+- **Suavizacao** — maior = cursor mais responsivo, menor = mais estável
+- **Pinca (arrastar)** — quão juntos polegar e indicador precisam estar para
+  engatar o arrasto. Diminua se o arrasto dispara sozinho; aumente se está
+  difícil engatar.
+- **Dobra (clique)** — quão dobrado o dedo precisa estar para contar como
+  clique. Diminua se está clicando sem querer; aumente se os cliques não saem.
+- **Cooldown clique** — tempo mínimo entre cliques (centésimos de segundo)
+- **Margem da tela** — margem do quadro da câmera mapeada para fora da tela
   (permite alcançar os cantos sem esticar o braço)
-- `click_cooldown_s` — tempo mínimo entre cliques
+
+Opções mais avançadas continuam em `config.py`:
+
 - `click_anchor_delay_s` — o clique é aplicado onde o cursor estava há este
-  tempo (antes de o dedo dobrar), para não errar alvos pequenos; aumente se
-  os cliques estiverem caindo "atrasados" no caminho do cursor
+  tempo (antes de o dedo dobrar), para não errar alvos pequenos
 - `camera_index` — troque se você tiver mais de uma câmera
+- `target_fps`, `frame_width`, `frame_height` — captura da câmera
 - `failsafe` — se `True`, jogar o cursor num canto da tela aborta o pyautogui
   (proteção de emergência; desligado por padrão porque os cantos são
   alcançáveis de propósito)
@@ -104,7 +103,11 @@ Outros úteis:
 - **Arrasto travando ou soltando sozinho**: ajuste `pinch_threshold` /
   `pinch_release` (a diferença entre eles é a histerese que evita o
   "pisca-pisca").
-- **Cursor tremendo**: diminua `smoothing_alpha` (ex.: 0.2).
+- **Cursor tremendo**: diminua o slider Suavizacao (ex.: 20).
+- **FPS baixo**: ilumine bem o ambiente — webcams cortam o FPS pela metade
+  no escuro por causa da auto-exposição. O app já pede 30 FPS e o codec
+  MJPG à câmera; se ainda assim ficar lento, reduza `frame_width`/
+  `frame_height` em `config.py`.
 - **Cliques erram botões pequenos (minimizar, fechar...)**: o clique usa a
   posição de `click_anchor_delay_s` atrás (padrão 0.25s), de antes de o dedo
   dobrar, e o cursor fica congelado enquanto o dedo está dobrado. Se ainda
