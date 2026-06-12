@@ -23,7 +23,7 @@ clicar quase não desloca o cursor.
 
 ## Requisitos
 
-- Python **3.9 a 3.12** (o MediaPipe ainda não suporta 3.13)
+- Python **3.9 ou superior** (qualquer versão com wheel do MediaPipe disponível)
 - Uma webcam
 - **Windows** ou **Linux com sessão X11** (em Wayland o pyautogui não consegue
   mover o mouse — faça login em uma sessão "Xorg"/"X11" na tela de login)
@@ -48,6 +48,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+Na primeira execução, o modelo de mãos do MediaPipe (`hand_landmarker.task`,
+~8 MB) é baixado automaticamente para a pasta do projeto — só nessa vez é
+preciso estar conectado à internet.
 
 Abre uma janela de preview com a câmera e o esqueleto das mãos. Com essa
 janela em foco:
@@ -81,6 +85,13 @@ Outros úteis:
 
 ## Solução de problemas
 
+- **`AttributeError: module 'mediapipe' has no attribute 'solutions'`**: você
+  está com uma versão antiga deste projeto. As wheels novas do MediaPipe não
+  trazem mais a API legada `mp.solutions`; o projeto usa a Tasks API. Faça
+  `git pull` e rode de novo.
+- **Erro ao baixar `hand_landmarker.task`**: a primeira execução precisa de
+  internet. Sem ela, baixe o arquivo manualmente (a URL aparece na mensagem
+  de erro) e salve na pasta do projeto.
 - **A câmera não abre**: confira `camera_index` em `config.py` (tente 1, 2...)
   e as permissões de câmera do sistema.
 - **O cursor não se move no Linux**: você provavelmente está em Wayland.
