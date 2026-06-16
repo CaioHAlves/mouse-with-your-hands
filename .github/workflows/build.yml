@@ -1,0 +1,88 @@
+name: Build executables
+
+# Gera o executavel do Windows (.exe) e o binario do Linux com PyInstaller.
+# Rode manualmente em Actions -> "Build executables" -> "Run workflow", ou
+# empurre uma tag "v*" (ex.: v1.0.0) para tambem anexar os pacotes a uma Release.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: MouseComAsMaos-windows
+          - os: ubuntu-latest
+            asset: MouseComAsMaos-linux
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # cv2/pyautogui precisam dessas libs do sistema no Linux para serem
+      # importados durante a analise do PyInstaller.
+      - name: Install system libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libglib2.0-0
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      # Baixa o modelo do MediaPipe para ser empacotado (app roda offline).
+      - name: Download hand landmarker model
+        run: >
+          python -c "import urllib.request;
+          urllib.request.urlretrieve('https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task',
+          'hand_landmarker.task')"
+
+      - name: Build with PyInstaller
+        run: pyinstaller --noconfirm MouseComAsMaos.spec
+
+      # Compacta a pasta dist/MouseComAsMaos em um unico arquivo por SO.
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path dist/MouseComAsMaos/* -DestinationPath ${{ matrix.asset }}.zip
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: tar -czf ${{ matrix.asset }}.tar.gz -C dist/MouseComAsMaos .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: |
+            ${{ matrix.asset }}.zip
+            ${{ matrix.asset }}.tar.gz
+          if-no-files-found: ignore
+
+      # Quando o gatilho e uma tag v*, anexa os pacotes a Release.
+      - name: Attach to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ matrix.asset }}.zip
+            ${{ matrix.asset }}.tar.gz
+          fail_on_unmatched_files: false

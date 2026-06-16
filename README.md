@@ -60,6 +60,35 @@ janela **Ajustes**, com os controles de sensibilidade. Com o preview em foco:
 - **p** — pausa/retoma o controle do mouse (o rastreamento continua visível)
 - **r** — restaura os ajustes padrão
 
+## Gerar executável
+
+Há um workflow do GitHub Actions (`.github/workflows/build.yml`) que empacota
+o app com o [PyInstaller](https://pyinstaller.org/) e gera os pacotes do
+Windows e do Linux:
+
+- **Manualmente**: aba **Actions** → **Build executables** → **Run workflow**.
+  Ao terminar, baixe os artefatos (`MouseComAsMaos-windows` e
+  `MouseComAsMaos-linux`) na própria execução.
+- **Por release**: empurre uma tag `v*` (ex.: `git tag v1.0.0 && git push
+  --tags`) e os pacotes são anexados automaticamente à Release.
+
+O executável fica dentro da pasta `MouseComAsMaos/` — distribua a pasta
+inteira (modo *onedir*). O modelo `hand_landmarker.task` já vai embutido,
+então o app roda offline.
+
+Para gerar localmente (na mesma plataforma do alvo: Windows gera `.exe`,
+Linux gera o binário Linux):
+
+```bash
+pip install pyinstaller
+python main.py            # uma vez, para baixar hand_landmarker.task
+pyinstaller --noconfirm MouseComAsMaos.spec
+```
+
+O `MouseComAsMaos.spec` cuida das pegadinhas do empacotamento (coleta os
+dados do MediaPipe e embute o modelo). O resultado fica em
+`dist/MouseComAsMaos/`.
+
 ## Ajustes de sensibilidade
 
 Use os sliders da janela **Ajustes** — valem na hora e ficam salvos em
