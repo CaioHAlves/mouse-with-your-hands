@@ -226,5 +226,20 @@ def main():
     return 0
 
 
+def _run():
+    try:
+        return main()
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    code = _run()
+    # No executável empacotado (PyInstaller) a janela do console fecha sozinha
+    # ao terminar; pausa para dar tempo de ler mensagens de erro (ex.: câmera
+    # ausente) antes de fechar.
+    if getattr(sys, "frozen", False):
+        input("\nPressione Enter para fechar...")
+    sys.exit(code)
