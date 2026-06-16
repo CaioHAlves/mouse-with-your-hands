@@ -21,9 +21,9 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            asset: MouseComAsMaos-windows
+            asset: HandMouse-windows
           - os: ubuntu-latest
-            asset: MouseComAsMaos-linux
+            asset: HandMouse-linux
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -57,16 +57,16 @@ jobs:
           'hand_landmarker.task')"
 
       - name: Build with PyInstaller
-        run: pyinstaller --noconfirm MouseComAsMaos.spec
+        run: pyinstaller --noconfirm HandMouse.spec
 
-      # Compacta a pasta dist/MouseComAsMaos em um unico arquivo por SO.
+      # Compacta a pasta dist/HandMouse em um unico arquivo por SO.
       - name: Package (Windows)
         if: runner.os == 'Windows'
-        run: Compress-Archive -Path dist/MouseComAsMaos/* -DestinationPath ${{ matrix.asset }}.zip
+        run: Compress-Archive -Path dist/HandMouse/* -DestinationPath ${{ matrix.asset }}.zip
 
       - name: Package (Linux)
         if: runner.os == 'Linux'
-        run: tar -czf ${{ matrix.asset }}.tar.gz -C dist/MouseComAsMaos .
+        run: tar -czf ${{ matrix.asset }}.tar.gz -C dist/HandMouse .
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

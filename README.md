@@ -67,12 +67,12 @@ o app com o [PyInstaller](https://pyinstaller.org/) e gera os pacotes do
 Windows e do Linux:
 
 - **Manualmente**: aba **Actions** → **Build executables** → **Run workflow**.
-  Ao terminar, baixe os artefatos (`MouseComAsMaos-windows` e
-  `MouseComAsMaos-linux`) na própria execução.
+  Ao terminar, baixe os artefatos (`HandMouse-windows` e
+  `HandMouse-linux`) na própria execução.
 - **Por release**: empurre uma tag `v*` (ex.: `git tag v1.0.0 && git push
   --tags`) e os pacotes são anexados automaticamente à Release.
 
-O executável fica dentro da pasta `MouseComAsMaos/` — distribua a pasta
+O executável fica dentro da pasta `HandMouse/` — distribua a pasta
 inteira (modo *onedir*). O modelo `hand_landmarker.task` já vai embutido,
 então o app roda offline.
 
@@ -82,12 +82,12 @@ Linux gera o binário Linux):
 ```bash
 pip install pyinstaller
 python main.py            # uma vez, para baixar hand_landmarker.task
-pyinstaller --noconfirm MouseComAsMaos.spec
+pyinstaller --noconfirm HandMouse.spec
 ```
 
-O `MouseComAsMaos.spec` cuida das pegadinhas do empacotamento (coleta os
+O `HandMouse.spec` cuida das pegadinhas do empacotamento (coleta os
 dados do MediaPipe e embute o modelo). O resultado fica em
-`dist/MouseComAsMaos/`.
+`dist/HandMouse/`.
 
 ## Ajustes de sensibilidade
 
